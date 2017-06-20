@@ -90,41 +90,27 @@ class Home extends Component {
     Chart.defaults.global.defaultFontFamily = 'Overpass';
     Chart.defaults.global.defaultFontColor = '#444';
 
+    // {
+    //   label: 'Cloudiness (%)',
+    //   data: this.state.clouds,
+    //   backgroundColor: white,
+    //   borderColor: '#fff',
+    //   hoverBorderColor: '#000',
+    //   borderWidth: 1,
+    //   pointBackgroundColor: '#fff',
+    //   pointBorderColor: cloud_color,
+    //   pointHoverBackgroundColor: cloud_color
+    // }
+
     let myChart = new Chart(ctx, {
       type: 'horizontalBar',
       data: {
         labels: this.state.places,
-        datasets: [{
-          label: 'Temperature (F)',
-          data: this.state.temps,
-          backgroundColor: temp_color,
-          borderColor: '#fff',
-          hoverBorderColor: '#000',
-          borderWidth: 1,
-          pointBackgroundColor: '#fff',
-          pointBorderColor: temp_color,
-          pointHoverBackgroundColor: temp_color
-        }, {
-          label: 'Humidity (%)',
-          data: this.state.humid,
-          backgroundColor: humid_color,
-          borderColor: '#fff',
-          hoverBorderColor: '#000',
-          borderWidth: 1,
-          pointBackgroundColor: '#fff',
-          pointBorderColor: humid_color,
-          pointHoverBackgroundColor: humid_color
-        }, {
-          label: 'Cloudiness (%)',
-          data: this.state.clouds,
-          backgroundColor: white,
-          borderColor: '#fff',
-          hoverBorderColor: '#000',
-          borderWidth: 1,
-          pointBackgroundColor: '#fff',
-          pointBorderColor: cloud_color,
-          pointHoverBackgroundColor: cloud_color
-        }]
+        datasets: [
+          this.createDataset('Temperature (F)', this.state.temps, temp_color),
+          this.createDataset('Humidity (%)', this.state.humid, humid_color),
+          this.createDataset('Cloudiness (%)', this.state.clouds, white)
+        ]
       },
       options: {
         title: {
@@ -156,6 +142,17 @@ class Home extends Component {
     });
   }
 
+  createDataset(dataLabel, dataset, bgColor) {
+    return {
+      label: dataLabel,
+      data: dataset,
+      backgroundColor: bgColor,
+      borderColor: '#fff',
+      hoverBorderColor: '#f1f4ff',
+      borderWidth: 1,
+    }
+  }
+
   // Helper Functions
   timeConverter(UNIX_timestamp){
     let a = new Date(UNIX_timestamp * 1000);
@@ -180,42 +177,44 @@ class Home extends Component {
 
   renderSearch() {
     return (
-      <div className="row">
-        <div className="col-xs-12 col-md-6 col-md-offset-3 text-center">
-          <h1>Where are we going?</h1>
-          <hr style={barStyle} />
-        </div>
-        <div className="col-xs-12 col-md-6 col-md-offset-3">
-          <input type="search" id="address-input" placeholder="Where are we going?" />
+      <div className="jumbotron" style={detailStyle}>
+        <div className="row">
+          <div className="col-xs-12 col-md-8 col-md-offset-2 text-center">
+            <h1>Where are we going?</h1>
+            <hr style={barStyle} />
+          </div>
+          <div className="col-xs-12 col-md-8 col-md-offset-2">
+            <input type="search" id="address-input" placeholder="Where are we going?" />
+          </div>
         </div>
       </div>
     );
   }
 
-  renderDetails() {
-    return (
-      <div style={detailStyle}>
-        <div className="row">
-          <div className="col-xs-12 col-md-6 col-md-offset-3 text-center">
-            <h1><strong>{this.state.location.name}</strong></h1>
-          </div>
-        </div>
-
-        <div className="row">
-          <div className="col-xs-4 text-center">
-            <h4>{this.truncate(this.state.location.main.temp)}<span className="temp temp-far">&deg;F</span></h4>
-            <h4>{this.truncate((this.state.location.main.temp - 32) / 1.8)}<span className="temp temp-cel">&deg;C</span></h4>
-          </div>
-          <div className="col-xs-4 text-center">
-            <h4><em>Humidity: </em>{this.state.location.main.humidity}%</h4>
-          </div>
-          <div className="col-xs-4 text-center">
-            <h4><em>Cloudiness: </em>{this.state.location.clouds.all}%</h4>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // renderDetails() {
+  //   return (
+  //     <div>
+  //       <div className="row">
+  //         <div className="col-xs-12 col-md-6 col-md-offset-3 text-center">
+  //           <h1><strong>{this.state.location.name}</strong></h1>
+  //         </div>
+  //       </div>
+  //
+  //       <div className="row">
+  //         <div className="col-xs-4 text-center">
+  //           <h4>{this.truncate(this.state.location.main.temp)}<span className="temp temp-far">&deg;F</span></h4>
+  //           <h4>{this.truncate((this.state.location.main.temp - 32) / 1.8)}<span className="temp temp-cel">&deg;C</span></h4>
+  //         </div>
+  //         <div className="col-xs-4 text-center">
+  //           <h4><em>Humidity: </em>{this.state.location.main.humidity}%</h4>
+  //         </div>
+  //         <div className="col-xs-4 text-center">
+  //           <h4><em>Cloudiness: </em>{this.state.location.clouds.all}%</h4>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   renderChart() {
     return (
@@ -241,8 +240,6 @@ class Home extends Component {
     return (
       <div className="container" style={homeStyle}>
         {this.renderSearch()}
-        <br />
-        {this.renderDetails()}
         <br />
         {this.renderChart()}
       </div>
