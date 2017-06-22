@@ -15,18 +15,19 @@ const white = '#f1f4ff';
 // Chart Groups
 const temp_color = '#ee3017';
 const humid_color= '#80CAED';
-const cloud_color = '#3F51B5';
+const wind_color = '#ffd877';
+// const cloud_color = '#3F51B5';
 // // Styles
 const homeStyle = {
   color: green,
   fontFamily: `'Overpass', sans-serif`
 };
 const detailStyle = {
-  border: `2px solid ${white}`,
-  background: '#fff'
+  // border: `2px solid ${white}`,
+  background: 'transparent'
 };
 const barStyle = {
-  border: `1px solid ${green}`
+  backgroundColor: '#fff'
 };
 
 class Home extends Component {
@@ -41,6 +42,7 @@ class Home extends Component {
       places: [],
       temps: [],
       humid: [],
+      winds: [],
       clouds: [],
       colors: [],
       chart: null
@@ -75,32 +77,44 @@ class Home extends Component {
         places: that.state.places.concat([response.data.name]),
         temps: that.state.temps.concat([response.data.main.temp]),
         humid: that.state.humid.concat([response.data.main.humidity]),
-        clouds: that.state.clouds.concat([response.data.clouds.all]),
-      })
+        winds: that.state.winds.concat([response.data.wind.speed]),
+        clouds: that.state.clouds.concat([response.data.clouds.all])
+      });
+      // Create chart
+      that.createChart();
     })
     .catch(function (error) {
       console.log(error)
     });
+  }
 
-    // Create chart
+  // Helper Functions
+
+  // // Adding datasets to chart
+  createDataset(dataLabel, dataset, bgColor) {
+    return {
+      label: dataLabel,
+      data: dataset,
+      backgroundColor: bgColor,
+      borderColor: '#fff',
+      hoverBorderColor: '#262933',
+      borderWidth: 1,
+    }
+  }
+
+  // // Display rounded temperature
+  truncate(number) {
+    return Math[number < 0 ? 'ceil' : 'floor'](number);
+  };
+
+  // // Create Chart
+  createChart() {
     let ctx = document.getElementById("myChart").getContext("2d");
     if (this.state.chart) this.state.chart.destroy();
 
     // Global Options
     Chart.defaults.global.defaultFontFamily = 'Overpass';
-    Chart.defaults.global.defaultFontColor = '#444';
-
-    // {
-    //   label: 'Cloudiness (%)',
-    //   data: this.state.clouds,
-    //   backgroundColor: white,
-    //   borderColor: '#fff',
-    //   hoverBorderColor: '#000',
-    //   borderWidth: 1,
-    //   pointBackgroundColor: '#fff',
-    //   pointBorderColor: cloud_color,
-    //   pointHoverBackgroundColor: cloud_color
-    // }
+    Chart.defaults.global.defaultFontColor = green;
 
     let myChart = new Chart(ctx, {
       type: 'horizontalBar',
@@ -109,6 +123,7 @@ class Home extends Component {
         datasets: [
           this.createDataset('Temperature (F)', this.state.temps, temp_color),
           this.createDataset('Humidity (%)', this.state.humid, humid_color),
+          this.createDataset('Wind (MPH)', this.state.winds, wind_color),
           this.createDataset('Cloudiness (%)', this.state.clouds, white)
         ]
       },
@@ -142,39 +157,6 @@ class Home extends Component {
     });
   }
 
-  createDataset(dataLabel, dataset, bgColor) {
-    return {
-      label: dataLabel,
-      data: dataset,
-      backgroundColor: bgColor,
-      borderColor: '#fff',
-      hoverBorderColor: '#f1f4ff',
-      borderWidth: 1,
-    }
-  }
-
-  // Helper Functions
-  timeConverter(UNIX_timestamp){
-    let a = new Date(UNIX_timestamp * 1000);
-    // let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    // let year = a.getFullYear();
-    // let month = months[a.getMonth()];
-    // let date = a.getDate();
-    let hour = a.getHours();
-    if (hour.toString().length === 1) hour = `0${hour}`;
-    let min = a.getMinutes();
-    if (min.toString().length === 1) min = `0${min}`;
-    let sec = a.getSeconds();
-    if (sec.toString().length === 1) sec = `0${sec}`;
-    // let fullDate = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
-    let time = hour + ':' + min + ':' + sec; // Only Time
-    return time;
-  }
-
-  truncate(number) {
-    return Math[number < 0 ? 'ceil' : 'floor'](number);
-  };
-
   renderSearch() {
     return (
       <div className="jumbotron" style={detailStyle}>
@@ -191,34 +173,9 @@ class Home extends Component {
     );
   }
 
-  // renderDetails() {
-  //   return (
-  //     <div>
-  //       <div className="row">
-  //         <div className="col-xs-12 col-md-6 col-md-offset-3 text-center">
-  //           <h1><strong>{this.state.location.name}</strong></h1>
-  //         </div>
-  //       </div>
-  //
-  //       <div className="row">
-  //         <div className="col-xs-4 text-center">
-  //           <h4>{this.truncate(this.state.location.main.temp)}<span className="temp temp-far">&deg;F</span></h4>
-  //           <h4>{this.truncate((this.state.location.main.temp - 32) / 1.8)}<span className="temp temp-cel">&deg;C</span></h4>
-  //         </div>
-  //         <div className="col-xs-4 text-center">
-  //           <h4><em>Humidity: </em>{this.state.location.main.humidity}%</h4>
-  //         </div>
-  //         <div className="col-xs-4 text-center">
-  //           <h4><em>Cloudiness: </em>{this.state.location.clouds.all}%</h4>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   renderChart() {
     return (
-      <div style={detailStyle}>
+      <div style={barStyle}>
         <div className="row">
           <div className="col-xs-12 col-md-8 col-md-offset-2">
             <canvas id="myChart"></canvas>
