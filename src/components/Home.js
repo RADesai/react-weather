@@ -11,12 +11,13 @@ import axios from 'axios';
 // App Styling
 // // Colors
 const green = '#00695c';
+const lightGreen = '#F5FFFC';
 const white = '#f1f4ff';
 // Chart Groups
 const temp_color = '#ee3017';
 const humid_color= '#80CAED';
 const wind_color = '#ffd877';
-// const cloud_color = '#3F51B5';
+
 // // Styles
 const homeStyle = {
   color: green,
@@ -25,6 +26,10 @@ const homeStyle = {
 const detailStyle = {
   // border: `2px solid ${white}`,
   background: 'transparent'
+};
+const placeStyle = {
+  border: `2px solid ${lightGreen}`,
+  borderRadius: '5px'
 };
 const barStyle = {
   backgroundColor: '#fff'
@@ -35,16 +40,14 @@ class Home extends Component {
     super(props);
     this.state = {
       location: null,
-      sRise: null,
-      sSet: null,
       lat: null,
       lng: null,
       places: [],
+      conditions: [],
       temps: [],
       humid: [],
       winds: [],
       clouds: [],
-      colors: [],
       chart: null
     }
   }
@@ -61,7 +64,7 @@ class Home extends Component {
         lng: e.suggestion.latlng.lng
       });
       this.getWeather();
-    }); // Within place change listener
+    });
   }
 
   getWeather() {
@@ -70,18 +73,22 @@ class Home extends Component {
     let that = this;
     axios.get(`http://api.openweathermap.org/data/2.5/weather?lat=${this.state.lat}&lon=${this.state.lng}&APPID=${KEYS.weatherAPI}&units=imperial`)
     .then(function (response) {
-      console.log('Weather:', response.data);
+      console.log(response.data.name, response.data);
       // Check for location already found, no duplicates
-      that.setState({
-        location: response.data,
-        places: that.state.places.concat([response.data.name]),
-        temps: that.state.temps.concat([response.data.main.temp]),
-        humid: that.state.humid.concat([response.data.main.humidity]),
-        winds: that.state.winds.concat([response.data.wind.speed]),
-        clouds: that.state.clouds.concat([response.data.clouds.all])
-      });
-      // Create chart
-      that.createChart();
+      if (that.state.places.indexOf(response.data.name) === -1) {
+        let newLoc = { "name": response.data.name, "weather": response.data.weather };
+        that.setState({
+          location: response.data,
+          places: that.state.places.concat([response.data.name]),
+          temps: that.state.temps.concat([response.data.main.temp]),
+          humid: that.state.humid.concat([response.data.main.humidity]),
+          winds: that.state.winds.concat([response.data.wind.speed]),
+          clouds: that.state.clouds.concat([response.data.clouds.all]),
+          conditions: that.state.conditions.concat(newLoc)
+        });
+        // Create chart
+        that.createChart();
+      }
     })
     .catch(function (error) {
       console.log(error)
@@ -173,6 +180,32 @@ class Home extends Component {
     );
   }
 
+  renderDetails() {
+    return (
+      <div className="row">
+        <div className="col-xs-12 col-md-3"></div>
+        <div className="col-md-6 text-center">
+          {this.state.conditions.map((place, index) =>
+            <div style={placeStyle} className="col-xs-6 col-md-3" key={index}>
+              <h4><strong>{place.name}</strong></h4>
+              {this.renderConditions(place)}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  renderConditions(place) {
+    return (
+      <div>
+        {place.weather.map((cond, index) =>
+          <img key={index} src={`http://openweathermap.org/img/w/${cond.icon}.png`} alt={cond.description}/>
+        )}
+      </div>
+    );
+  }
+
   renderChart() {
     return (
       <div style={barStyle}>
@@ -199,6 +232,8 @@ class Home extends Component {
         {this.renderSearch()}
         <br />
         {this.renderChart()}
+        <br />
+        {this.renderDetails()}
       </div>
     );
   }
